@@ -1,0 +1,7 @@
+# Ignoring data files
+*.csv
+*.tex
+# Ignoring backup/temporary files
+*.swp
+*.bak
+*~
