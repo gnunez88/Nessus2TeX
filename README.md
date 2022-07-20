@@ -34,6 +34,30 @@ Once we have the CSV file parsed, we can now create the tables:
 The `output.tex` file will contain the tables of the vulnerabilities, with its headings in the language specified
 (available languages: English, Spanish and Catalan), and auto incrementing labels.
 
+If the amount of entries retrieved are quite high, using `pdflatex` will crash, since it does not have enough 
+memory, for this reason I have implemented a flag on `one_line_csv_parser.py` to limit the number of results,
+returning them by descending order of criticity (with the value of the CVSS v3.0 column).
+
+Take into account some vulnerabilities might not have anything in this field but they have a CVSS v2 assigned.
+
+### What Nessus fields I need
+
+The Nessus fields needed are the following:
+- CVE
+- Risk
+- Host
+- Protocol
+- Port
+- Name
+- Synopsis
+- Description
+- Solution
+- Exploitable With
+- CVSS v3.0 Base Score
+
+The field *Synopsis* is not being used yet, but I decided to leave it to add a functionality with this
+in the future.
+
 ## This is too much to type
 
 Yep, you are right, lazy bastard...
@@ -50,9 +74,13 @@ You can also specify the language (one of the available ones) with
 ./do_everything_for_me.sh nessus.csv output en
 ```
 
-## Extra
+You can also specify the amount of entries to get, it will return the most critical ones.
+Here, it is retrieving the 250 most critical ones.
 
-Since I have faced some limitations with the memory LaTeX uses when working with loads of tables,
-I decided to add another script, namely `this_is_cheating.sh` which takes a number of entries, by 
-default 50, of vulnerabilities with criticality critical, high and medium.
+```bash
+./do_everything_for_me.sh nessus.csv output en 250
+```
 
+# TODO
+
+Take into account the other CVSS scores (2.0 and 2.1).

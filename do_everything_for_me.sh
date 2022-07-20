@@ -2,6 +2,7 @@
 INFILE="${1:?You need to specify the input file (Nessus CSV)}"
 OUTFILE="${2:?You need to specify the name (not the extension) of the output file}"
 TEXTLANG="${3:-es}"
+QUANTITY="${4:-0}"
 
 PARSER="${PWD}/one_line_csv_parser.py"
 FORMATTER="${PWD}/detailed_table_generator.py"
@@ -25,7 +26,5 @@ else
     exit MISSING_SCRIPT
 fi
 
-"${PARSER}" -l 'Risk' -L 'critical,high,medium', -o "${OUTFILE}".csv -n '\\' "${INFILE}"
-#"${PARSER}" -l 'Risk' -o "${OUTFILE}".csv -n '\\' "${INFILE}"
-./this_is_cheating.sh "${OUTFILE}"  # LaTeX cannot compile with a certain amount of data
+"${PARSER}" -l 'Risk' -L 'critical,high,medium', -o "${OUTFILE}".csv -n '\\' -q "${QUANTITY}" "${INFILE}"
 "${FORMATTER}" -s "${OUTFILE}".csv -o "${OUTFILE}".tex -l "${TEXTLANG}"

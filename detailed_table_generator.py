@@ -6,6 +6,9 @@ import re
 import signal
 import sys
 
+from tools.csv_tools import csv_parser
+from tools.tex_tools import resolve_conflicts
+
 # Global variables
 outfile = None      # Output file
 verbosity = 0       # 
@@ -16,67 +19,61 @@ high_colour = 'FD6864'
 medium_colour = 'F56B00'
 white = 'FFFFFF'
 
-## Conflicting characters
-conflicting_characters = [
-        #['{', '\{'],
-        #['}', '\}'],
-        ['\\\\', '+++newline+++'],  # Saving the newlines
-        ['\\', '\\textbackslash{}'],
-        ['_', '\\_'],
-        ['&', '\&'],
-        ['%', '\%'],
-        ['$', '\$'],
-        ['~', '\\textasciitilde{}'],
-        ['^', '\\textasciicircum{}'],
-        ['+++newline+++', '\\\\']  # Converting back the newlines
-    ]
-
 ## Texts
 computer_info_text = {
         'en': "Computer information",
         'es': "Información del equipo",
         'ca': "Informació de l'ordinador"
     }
+
 vuln_text = {
         'en': "Vulnerabilities",
         'es': "Vulnerabilidades",
         'ca': "Vulnerabilitats"
     }
+
 description_text = {
         'en': "Description",
         'es': "Descripción",
         'ca': "Descripció"
     }
+
 criticality_text = {
         'en': "Criticality",
         'es': "Criticidad",
         'ca': "Criticitat"
     }
+
 criticality_critical_text = {
         'en': "Critical",
         'es': "Crítica",
         'ca': "Crítica"
     }
+
 criticality_high_text = {
         'en': "High",
         'es': "Alta",
         'ca': "Alta"
     }
+
 criticality_medium_text = {
         'en': "Medium",
         'es': "Media",
         'ca': "Mitja"
     }
+
 criticality_low_text = {
         'en': "Low",
         'es': "Baja",
         'ca': "Baixa"
     }
+
 criticality_none_text = {
         'en': "None",
         'es': "Ninguna",
         'ca': "Cap"
     }
+
 criticality_command = {
         'critical': "\\Critica",
         'high': "\\Alta",
@@ -84,6 +81,7 @@ criticality_command = {
         'low': "\\Baja",
         'none': "\\Ninguna"
     }
+
 recommendation_text = {
         'en': "Recommendations",
         'es': "Recomendaciones",
@@ -96,15 +94,19 @@ doc_structure_begin = '''
 \\begin{{document}}
 
 '''
+
 doc_structure_end = r'''
 \end{document}
 '''
+
 doc_structure_begin_summary = r'''
 %% Vulnerabilities summary
 '''
+
 doc_structure_begin_details = r'''
 %% Vulnerabilities' details
 '''
+
 summary_table = '''
 \\begin{{table}}[H]\\label{{tbl:summary}}
     \\centering
@@ -123,6 +125,7 @@ summary_table = '''
     \\end{{tabular}}
 \\end{{table}}
 '''
+
 summary_table_values = {
         "critical": 0,
         "critical_with_exploit": 0,
@@ -131,6 +134,7 @@ summary_table_values = {
         "medium": 0,
         "medium_with_exploit": 0
     }
+
 detailed_table = '''
 \\begin{{table}}[H]
 \\begin{{tabular}}{{|ll|}}
@@ -200,18 +204,6 @@ def stop(sig, frame):
     sys.exit(1)
 
 
-def csv_parser(csv_file:str, delimiter=',') -> list:
-    pattern = r'(?<=")[^"]*?(?="(?:' + delimiter + r'"|$))'
-    fields = re.findall(pattern, csv_file, re.MULTILINE)
-    return fields
-
-
-def resolve_conflicts(text:str) -> str:
-    for conflicting_character in conflicting_characters:
-        text = text.replace(conflicting_character[0], conflicting_character[1])
-    return text
-
-
 def main(args):
     signal.signal(signal.SIGINT, stop)
 
@@ -237,16 +229,16 @@ def main(args):
     # Get indeces
     indeces = {
             "cve": headers.split(',').index('CVE'),
+            "criticality": headers.split(',').index('Risk'),
             "host": headers.split(',').index('Host'),
             "protocol": headers.split(',').index('Protocol'),
             "port": headers.split(',').index('Port'),
-            "criticality": headers.split(',').index('Risk'),
             "vuln": headers.split(',').index('Name'),
             "synopsis": headers.split(',').index('Synopsis'),
             "description": headers.split(',').index('Description'),
-            "exploit": headers.split(',').index('Metasploit'),
             "solution": headers.split(',').index('Solution'),
-            "cvss_v3": headers.split(',').index('CVSS v3.0 Base Score')
+            "cvss_v3": headers.split(',').index('CVSS v3.0 Base Score'),
+            "exploit": headers.split(',').index('Metasploit')
         }
 
     # Detailed tables
@@ -330,10 +322,9 @@ def main(args):
         f.write(document)
 
 
-
+# Standalone
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    #parser.add_argument('cvs_file', type=str, help="CSV source file to parse")
     parser.add_argument('-c', '--classfile', type=str, help="Class file (default: ../report.tex)", default='../report.tex')
     parser.add_argument('-s', '--sourcefile', type=str, help="Source file (CSV) where to take the data from", required=True)
     parser.add_argument('-o', '--outfile', type=str, help="Output file (default: details.tex", default='details.tex')

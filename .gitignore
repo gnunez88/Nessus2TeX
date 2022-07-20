@@ -5,3 +5,5 @@
 *.swp
 *.bak
 *~
+# Ignoring compilations
+**/__pycache__/
